@@ -76,8 +76,12 @@ void Medium::read_bmp(){
   fread(image_s, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_s);
   fclose(fp_s);
 
-  for(y = 0; y < height; y++) {
-    for(x = 0; x < width; x++) {
+  for(y = 0; y != height; ++y) {
+    for(x = 0; x != width; ++x) {
+      if(x > 0 || y > 0)
+        wait(_write_free);
+      else
+        cout << "read x|y " << x << "|" << y << endl;
       int n = 0;
       //set the color values in the arrays
       for(filterY = 0; filterY < MASK_Y; filterY++) {
@@ -91,27 +95,25 @@ void Medium::read_bmp(){
         }
       }
       _read_done.notify();
-      //if (x > 0 || y > 0)
-      wait(_write_free);
-
     }
   }
+
   return 0;
 }
 
 void Medium::write_bmp(){
   for(;;){
     wait(_medium_done);
-    //cout << x << endl;
     *(image_t + byte_per_pixel * (width * y + x) + 2) = r_result;
     *(image_t + byte_per_pixel * (width * y + x) + 1) = g_result;
     *(image_t + byte_per_pixel * (width * y + x) + 0) = b_result;
-    if(x < width-1 || y < height-1 )
+    if(x < width || y < height )
       _write_free.notify();
     else
       break;
-  }
+  } 
   cout << "width | height" << width << height << endl;
+  cout << "write!" << endl;
   const char *fname_t = "lena_medium.bmp";
   FILE *fp_t = NULL;      // target file handler
   unsigned int file_size; // file size
@@ -146,7 +148,7 @@ void Medium::write_bmp(){
   
   // write header
   fwrite(header, sizeof(unsigned char), rgb_raw_data_offset, fp_t);
- 
+  
   // write image
   fwrite(image_t, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_t);
 
@@ -190,9 +192,8 @@ void Medium::do_medium() {
     _medium_done.notify();
   }
   /*
-  wait(_read_done);
-  for(y = 0; y < height; y++) {
-    for(x = 0; x < width; x++) {
+  for(y = 0; y != height; ++y) {
+    for(x = 0; x != width; ++x) {
       int n = 0;
       //set the color values in the arrays
       for(filterY = 0; filterY < MASK_Y; filterY++) {
@@ -210,8 +211,12 @@ void Medium::do_medium() {
       r_result = red[selectKth(red, 0, filterSize, filterSize / 2)];
       g_result = green[selectKth(green, 0, filterSize, filterSize / 2)];
       b_result = blue[selectKth(blue, 0, filterSize, filterSize / 2)];
+      *(image_t + byte_per_pixel * (width * y + x) + 2) = r_result;
+      *(image_t + byte_per_pixel * (width * y + x) + 1) = g_result;
+      *(image_t + byte_per_pixel * (width * y + x) + 0) = b_result;
     }
   }
-  _medium_done.notify();*/
-
+  */
 }
+
+

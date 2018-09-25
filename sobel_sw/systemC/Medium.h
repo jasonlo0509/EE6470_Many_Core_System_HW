@@ -28,7 +28,9 @@ private:
   int filterX;
   int x;
   int y;
-  int r_result, g_result, b_result;
+  int r_result;
+  int g_result;
+  int b_result;
   //color arrays (global variable)
   int red[MASK_X * MASK_Y];
   int green[MASK_X * MASK_Y];
@@ -37,7 +39,7 @@ private:
   unsigned int width;
   unsigned int height;
   unsigned int width_bytes;
-  unsigned char bit_per_pixel;
+  unsigned short bit_per_pixel;
   unsigned short byte_per_pixel;
   unsigned char *image_s;     // source image array
   unsigned char *image_t;     // target image array
