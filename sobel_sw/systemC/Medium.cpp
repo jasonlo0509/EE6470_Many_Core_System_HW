@@ -36,7 +36,7 @@ Medium::Medium(sc_module_name n) : sc_module(n) {
 Medium::~Medium() {}
 
 void Medium::read_bmp(){
-  const char *fname_s = "lena.bmp";
+  const char *fname_s = "lena_noise.bmp";
   FILE *fp_s = NULL; // source file handler
   fp_s = fopen(fname_s, "rb");
   if (fp_s == NULL) {
@@ -91,8 +91,7 @@ void Medium::read_bmp(){
         }
       }
       _read_done.notify();
-      //if (x > 0 || y > 0)
-      wait(_write_free);
+      wait(_medium_free);
 
     }
   }
@@ -102,7 +101,6 @@ void Medium::read_bmp(){
 void Medium::write_bmp(){
   for(;;){
     wait(_medium_done);
-    //cout << x << endl;
     *(image_t + byte_per_pixel * (width * y + x) + 2) = r_result;
     *(image_t + byte_per_pixel * (width * y + x) + 1) = g_result;
     *(image_t + byte_per_pixel * (width * y + x) + 0) = b_result;
@@ -111,7 +109,6 @@ void Medium::write_bmp(){
     else
       break;
   }
-  cout << "width | height" << width << height << endl;
   const char *fname_t = "lena_medium.bmp";
   FILE *fp_t = NULL;      // target file handler
   unsigned int file_size; // file size
@@ -188,30 +185,7 @@ void Medium::do_medium() {
     g_result = green[selectKth(green, 0, filterSize, filterSize / 2)];
     b_result = blue[selectKth(blue, 0, filterSize, filterSize / 2)];
     _medium_done.notify();
+    wait(_write_free);
+    _medium_free.notify();
   }
-  /*
-  wait(_read_done);
-  for(y = 0; y < height; y++) {
-    for(x = 0; x < width; x++) {
-      int n = 0;
-      //set the color values in the arrays
-      for(filterY = 0; filterY < MASK_Y; filterY++) {
-        for(filterX = 0; filterX < MASK_X; filterX++) {
-          int imageX = (x - MASK_X / 2 + filterX + width) % width;
-          int imageY = (y - MASK_Y / 2 + filterY + height) % height;
-          red[n] = *(image_s + byte_per_pixel * (imageY * width + imageX) + 2);
-          green[n] = *(image_s + byte_per_pixel * (imageY * width + imageX) + 1);
-          blue[n] = *(image_s + byte_per_pixel * (imageY * width + imageX) + 0);
-          n++;
-        }
-      }
-
-      int filterSize = MASK_X * MASK_Y;
-      r_result = red[selectKth(red, 0, filterSize, filterSize / 2)];
-      g_result = green[selectKth(green, 0, filterSize, filterSize / 2)];
-      b_result = blue[selectKth(blue, 0, filterSize, filterSize / 2)];
-    }
-  }
-  _medium_done.notify();*/
-
 }

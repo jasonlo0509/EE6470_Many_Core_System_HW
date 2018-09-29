@@ -9,8 +9,8 @@ using namespace sc_core;
 
 #define WHITE 255
 #define BLACK 0
-#define MASK_X 3
-#define MASK_Y 3
+#define MASK_X 5
+#define MASK_Y 5
 
 class Medium : public sc_module {
 public:

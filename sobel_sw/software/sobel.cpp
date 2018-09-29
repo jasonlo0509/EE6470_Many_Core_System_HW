@@ -1,16 +1,20 @@
 /* 
-  Author: yclo(Yun-Chen Lo)
-  Description: A C++ program that can perform medium filter to the input photo.
+(C) OOMusou 2007 http://oomusou.cnblogs.com
+
+Filename    : sobel_edge.c
+Compiler    : Visual C++ 8.0
+Description : Demo the how to use sobel detector on gray level image
+Release     : 07/23/2008 1.0
 */
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-using namespace std;
-
-#define MASK_X 5
-#define MASK_Y 5
+#define MASK_N 2
+#define MASK_X 3
+#define MASK_Y 3
+#define WHITE  255
+#define BLACK  0
 
 unsigned char *image_s = NULL;     // source image array
 unsigned char *image_t = NULL;     // target image array
@@ -37,15 +41,25 @@ unsigned char header[54] = {
   24, 0,       // bit per pixel
   0, 0, 0, 0,  // compression
   0, 0, 0, 0,  // data size
-  0, 0, 0, 0,  // height resolution
+  0, 0, 0, 0,  // h resolution
   0, 0, 0, 0,  // v resolution
   0, 0, 0, 0,  // used colors
   0, 0, 0, 0   // important colors
 };
 
 
-int read_bmp() {
-  const char *fname_s = "lena_noise.bmp";
+// sobel mask
+int mask[MASK_N][MASK_X][MASK_Y] = {
+  {{-1,-2,-1},
+   {0 , 0, 0},
+   {1 , 2, 1}},
+
+  {{-1, 0, 1},
+   {-2, 0, 2},
+   {-1, 0, 1}}
+};
+
+int read_bmp(const char *fname_s) {
   fp_s = fopen(fname_s, "rb");
   if (fp_s == NULL) {
     printf("fopen fp_s error\n");
@@ -84,67 +98,67 @@ int read_bmp() {
   fread(image_s, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_s);
  
   return 0;
-} 
-//color arrays (global variable)
-int red[MASK_X * MASK_Y];
-int green[MASK_X * MASK_Y];
-int blue[MASK_X * MASK_Y];
-
-// selects the k-th largest element from the data between start and end (end exclusive)
-int selectKth(int* data, int s, int e, int k)  // in practice, use C++'s nth_element, this is for demonstration only
-{
-  // 5 or less elements: do a small insertion sort
-  if(e - s <= 5)
-  {
-    for(int i = s + 1; i < e; i++)
-      for(int j = i; j > 0 && data[j - 1] > data[j]; j--) std::swap(data[j], data[j - 1]);
-    return s + k;
-  }
-
-  int p = (s + e) / 2; // choose simply center element as pivot
-
-  // partition around pivot into smaller and larger elements
-  std::swap(data[p], data[e - 1]); // temporarily move pivot to the end
-  int j = s;  // new pivot location to be calculated
-  for(int i = s; i + 1 < e; i++)
-    if(data[i] < data[e - 1]) std::swap(data[i], data[j++]);
-  std::swap(data[j], data[e - 1]);
-
-  // recurse into the applicable partition
-  if(k == j - s) return s + k;
-  else if(k < j - s) return selectKth(data, s, j, k);
-  else return selectKth(data, j + 1, e, k - j + s - 1); // subtract amount of smaller elements from k
+}
+ 
+// convert RGB to gray level int
+int color_to_int(int r, int g, int b) {
+  return (r + g + b) / 3;
 }
 
+int sobel(double threshold) {
+  unsigned int  x, y, i, v, u;             // for loop counter
+  unsigned char R, G, B;         // color of R, G, B
+  double val[MASK_N] = {0.0};
+  int adjustX, adjustY, xBound, yBound;
+  double total;
 
-int medium() {
-  
-  for(int y = 0; y < height; y++) {
-    for(int x = 0; x < width; x++) {
-      int n = 0;
-      //set the color values in the arrays
-      for(int filterY = 0; filterY < MASK_Y; filterY++) {
-        for(int filterX = 0; filterX < MASK_X; filterX++) {
-          int imageX = (x - MASK_X / 2 + filterX + width) % width;
-          int imageY = (y - MASK_Y / 2 + filterY + height) % height;
-          red[n] = *(image_s + byte_per_pixel * (imageY * width + imageX) + 2);
-          green[n] = *(image_s + byte_per_pixel * (imageY * width + imageX) + 1);
-          blue[n] = *(image_s + byte_per_pixel * (imageY * width + imageX) + 0);
-          n++;
+  for(y = 0; y != height; ++y) {
+    for(x = 0; x != width; ++x) {
+      for(i = 0; i != MASK_N; ++i) {
+        adjustX = (MASK_X % 2) ? 1 : 0;
+                adjustY = (MASK_Y % 2) ? 1 : 0;
+                xBound = MASK_X / 2;
+                yBound = MASK_Y / 2;
+           
+        val[i] = 0.0;
+        for(v = -yBound; v != yBound + adjustY; ++v) {
+          for (u = -xBound; u != xBound + adjustX; ++u) {
+            if (x + u >= 0 && x + u < width && y + v >= 0 && y + v < height) {
+              R = *(image_s + byte_per_pixel * (width * (y+v) + (x+u)) + 2);
+              G = *(image_s + byte_per_pixel * (width * (y+v) + (x+u)) + 1);
+              B = *(image_s + byte_per_pixel * (width * (y+v) + (x+u)) + 0);
+             
+                  val[i] +=    color_to_int(R, G, B) * mask[i][u + xBound][v + yBound];
+            }
+          }
         }
       }
 
-      int filterSize = MASK_X * MASK_Y;
-      *(image_t + byte_per_pixel * (width * y + x) + 2) = red[selectKth(red, 0, filterSize, filterSize / 2)];
-      *(image_t + byte_per_pixel * (width * y + x) + 1) = green[selectKth(green, 0, filterSize, filterSize / 2)];
-      *(image_t + byte_per_pixel * (width * y + x) + 0) = blue[selectKth(blue, 0, filterSize, filterSize / 2)];
+      total = 0.0;
+      for (i = 0; i != MASK_N; ++i) {
+              total += val[i] * val[i];
+      }
+
+          total = sqrt(total);
+         
+      if (total - threshold >= 0) {
+        // black
+        *(image_t + byte_per_pixel * (width * y + x) + 2) = BLACK;
+        *(image_t + byte_per_pixel * (width * y + x) + 1) = BLACK;
+        *(image_t + byte_per_pixel * (width * y + x) + 0) = BLACK;
+      } else {
+        // white
+        *(image_t + byte_per_pixel * (width * y + x) + 2) = WHITE;
+        *(image_t + byte_per_pixel * (width * y + x) + 1) = WHITE;
+        *(image_t + byte_per_pixel * (width * y + x) + 0) = WHITE;
+      }
     }
   }
+ 
   return 0;
 }
 
-int write_bmp() {
-  const char *fname_t = "lena_medium.bmp";
+int write_bmp(const char *fname_t) {
   unsigned int file_size; // file size
  
   fp_t = fopen(fname_t, "wb");
@@ -179,17 +193,16 @@ int write_bmp() {
   fwrite(header, sizeof(unsigned char), rgb_raw_data_offset, fp_t);
  
   // write image
-  fwrite(image_t, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_t);
+  fwrite(image_s, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_t);
     
   fclose(fp_s);
   fclose(fp_t);
     
   return 0;
-
 }
-
+ 
 int main() {
-  read_bmp(); // 24 bit gray level image
-  medium();
-  write_bmp();
+  read_bmp("lenan.bmp"); // 24 bit gray level image
+  sobel(90.0);
+  write_bmp("lena_sobel.bmp");
 }
