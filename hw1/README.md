@@ -14,7 +14,8 @@ $ make clean // for cleaning the executable binary
 ```
 
 ## General description
-In this homework, we have to implement a Event-based medium filter systemC system model.
+In this homework, we have to implement a Event-based medium filter systemC system model. 
+I first change the sobel filter into medium filter in the provided source code. Then use it as the golden data for systemc version. The input I finally choose is lena\_noise.bmp, and the output is lena\_medium.bmp. TA may use "make check" in systemC folder to verify the correctness.
 
 ## Implementation Details
 - Software: 

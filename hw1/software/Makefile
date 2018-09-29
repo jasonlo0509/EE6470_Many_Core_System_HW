@@ -5,4 +5,4 @@ run: medium
 	./medium
 
 clean:
-	rm medium
+	rm medium;rm sobel
