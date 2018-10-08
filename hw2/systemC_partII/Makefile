@@ -35,7 +35,7 @@ LIB_DIRS += -L$(SYSTEMC_HOME)/$(SYSTEMC_LIB)
 
 ### Definitions ###
 executives=sobel
-output=out.bmp
+output=lena_medium.bmp
 sources= main.cpp Testbench.cpp Medium.cpp
 objects= $(subst .cpp,.o,$(sources))
 dependencies= $(subst .cpp,.d,$(sources))
