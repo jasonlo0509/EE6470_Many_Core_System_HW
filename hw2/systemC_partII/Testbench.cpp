@@ -38,8 +38,23 @@ void Testbench::input(){
   for(int y = 0; y < height; y++) {
     for(int x = 0; x < width; x++) {
       //set the color values in the arrays
-      for(filterY = 0; filterY < MASK_Y; filterY++) {
-        for(filterX = 0; filterX < MASK_X; filterX++) {
+      if(x == 0){ // pass 9 elements
+        for(filterY = 0; filterY < MASK_Y; filterY++) {
+          for(filterX = 0; filterX < MASK_X; filterX++) {
+            int imageX = (x - MASK_X / 2 + filterX + width) % width;
+            int imageY = (y - MASK_Y / 2 + filterY + height) % height;
+            R = *(image_s + byte_per_pixel * (imageY * width + imageX) + 2);
+            G = *(image_s + byte_per_pixel * (imageY * width + imageX) + 1);
+            B = *(image_s + byte_per_pixel * (imageY * width + imageX) + 0);
+            o_r.write(R);
+            o_g.write(G);
+            o_b.write(B);
+          }
+        }
+      }
+      else { // pass only three elements
+        for(filterY = 0; filterY < MASK_Y; filterY++) {
+          filterX = MASK_X - 1;
           int imageX = (x - MASK_X / 2 + filterX + width) % width;
           int imageY = (y - MASK_Y / 2 + filterY + height) % height;
           R = *(image_s + byte_per_pixel * (imageY * width + imageX) + 2);

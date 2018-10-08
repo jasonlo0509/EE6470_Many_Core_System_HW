@@ -42,21 +42,45 @@ int Medium::selectKth(int* data, int s, int e, int k)  // in practice, use C++'s
 }
 
 void Medium::do_medium() {
-  while(1){
-    for (unsigned int v = 0; v<MASK_Y; ++v) {
-      for (unsigned int u = 0; u<MASK_X; ++u) {
-        red[v * MASK_X + u] = i_r.read();
-        green[v * MASK_X + u] = i_g.read(); 
-        blue[v * MASK_X + u] = i_b.read();
+  for(int y = 0; y < 512; y++) {
+    for(int x = 0; x < 512; x++) {
+      if (x == 0){
+        for (unsigned int v = 0; v<MASK_Y; ++v) {
+          for (unsigned int u = 0; u<MASK_X; ++u) {
+            red_backup[v * MASK_X + u] = i_r.read();
+            green_backup[v * MASK_X + u] = i_g.read(); 
+            blue_backup[v * MASK_X + u] = i_b.read();
+          }
+        }
       }
-    }
+      else {
+        for (unsigned int v = 0; v<MASK_Y; ++v) {
+          red_backup[v * MASK_X + 0] = red_backup[v * MASK_X + 1];
+          red_backup[v * MASK_X + 1] = red_backup[v * MASK_X + 2];
+          red_backup[v * MASK_X + 2] = i_r.read();
+          green_backup[v * MASK_X + 0] = green_backup[v * MASK_X + 1];
+          green_backup[v * MASK_X + 1] = green_backup[v * MASK_X + 2];
+          green_backup[v * MASK_X + 2] = i_g.read();
+          blue_backup[v * MASK_X + 0] = blue_backup[v * MASK_X + 1];
+          blue_backup[v * MASK_X + 1] = blue_backup[v * MASK_X + 2];
+          blue_backup[v * MASK_X + 2] = i_b.read();
+        }
+      }
 
-    int filterSize = MASK_X * MASK_Y;
-    int r_result = red[selectKth(red, 0, filterSize, filterSize / 2)];
-    int g_result = green[selectKth(green, 0, filterSize, filterSize / 2)];
-    int b_result = blue[selectKth(blue, 0, filterSize, filterSize / 2)];
-    or_result.write(r_result);
-    og_result.write(g_result);
-    ob_result.write(b_result);
+      for (unsigned int v = 0; v<MASK_Y; ++v) {
+        for (unsigned int u = 0; u<MASK_X; ++u) {
+          red[v * MASK_X + u] = red_backup[v * MASK_X + u];
+          green[v * MASK_X + u] = green_backup[v * MASK_X + u]; 
+          blue[v * MASK_X + u] = blue_backup[v * MASK_X + u];
+        }
+      }
+      int filterSize = MASK_X * MASK_Y;
+      int r_result = red[selectKth(red, 0, filterSize, filterSize / 2)];
+      int g_result = green[selectKth(green, 0, filterSize, filterSize / 2)];
+      int b_result = blue[selectKth(blue, 0, filterSize, filterSize / 2)];
+      or_result.write(r_result);
+      og_result.write(g_result);
+      ob_result.write(b_result);
+    }
   }
 }

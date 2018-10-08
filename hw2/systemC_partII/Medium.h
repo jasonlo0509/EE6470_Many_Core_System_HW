@@ -34,6 +34,9 @@ private:
   int red[MASK_X * MASK_Y];
   int green[MASK_X * MASK_Y];
   int blue[MASK_X * MASK_Y];
+  int red_backup[MASK_X * MASK_Y];
+  int green_backup[MASK_X * MASK_Y];
+  int blue_backup[MASK_X * MASK_Y];
   unsigned int rgb_raw_data_offset;
   unsigned int width;
   unsigned int height;
