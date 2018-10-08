@@ -1,5 +1,5 @@
-#ifndef MEDIUM_H_
-#define MEDIUM_H_
+#ifndef TESTBENCH_H_
+#define TESTBENCH_H_
 
 #include <string>
 using namespace std;
@@ -12,29 +12,32 @@ using namespace sc_core;
 #define MASK_X 3
 #define MASK_Y 3
 
-class Medium : public sc_module {
+class Testbench : public sc_module {
 public:
 
-  SC_HAS_PROCESS(Medium);
+  SC_HAS_PROCESS(Testbench);
 
-  Medium(sc_module_name n);
-  ~Medium();
+  Testbench(sc_module_name n);
+  ~Testbench();
 
   void read_bmp();
   void write_bmp();
+  void input();
+  void output();
+
+  sc_fifo_out< int > o_r;
+  sc_fifo_out< int > o_g;
+  sc_fifo_out< int > o_b;
+  sc_fifo_in< int > ir_result;
+  sc_fifo_in< int > ig_result;
+  sc_fifo_in< int > ib_result;
 
 private:
   int filterY;
   int filterX;
-  int x;
-  int y;
-  int r_result;
-  int g_result;
-  int b_result;
-  //color arrays (global variable)
-  int red[MASK_X * MASK_Y];
-  int green[MASK_X * MASK_Y];
-  int blue[MASK_X * MASK_Y];
+  int R;
+  int G;
+  int B;
   unsigned int rgb_raw_data_offset;
   unsigned int width;
   unsigned int height;
@@ -44,12 +47,5 @@ private:
   unsigned char *image_s;     // source image array
   unsigned char *image_t;     // target image array
 
-  void do_medium();
-  int selectKth(int* data, int s, int e, int k);
-
-  sc_event _read_done;
-  sc_event _medium_done;
-  sc_event _write_free;
-  sc_event _medium_free;
 };
 #endif

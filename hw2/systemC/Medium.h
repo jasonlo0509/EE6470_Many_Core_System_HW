@@ -20,18 +20,17 @@ public:
   Medium(sc_module_name n);
   ~Medium();
 
-  void read_bmp();
-  void write_bmp();
+  sc_fifo_out< int > or_result;
+  sc_fifo_out< int > og_result;
+  sc_fifo_out< int > ob_result;
+  sc_fifo_in< int > i_r;
+  sc_fifo_in< int > i_g;
+  sc_fifo_in< int > i_b;
 
 private:
   int filterY;
   int filterX;
-  int x;
-  int y;
-  int r_result;
-  int g_result;
-  int b_result;
-  //color arrays (global variable)
+    //color arrays (global variable)
   int red[MASK_X * MASK_Y];
   int green[MASK_X * MASK_Y];
   int blue[MASK_X * MASK_Y];
@@ -41,15 +40,8 @@ private:
   unsigned int width_bytes;
   unsigned short bit_per_pixel;
   unsigned short byte_per_pixel;
-  unsigned char *image_s;     // source image array
-  unsigned char *image_t;     // target image array
 
   void do_medium();
   int selectKth(int* data, int s, int e, int k);
-
-  sc_event _read_done;
-  sc_event _medium_done;
-  sc_event _write_free;
-  sc_event _medium_free;
 };
 #endif
