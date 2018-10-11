@@ -38,8 +38,28 @@ void Testbench::inout(){
   for(int y = 0; y < height; y++) {
     for(int x = 0; x < width; x++) {
       //set the color values in the arrays
-      for(filterY = 0; filterY < MASK_Y; filterY++) {
-        for(filterX = 0; filterX < MASK_X; filterX++) {
+      if(x == 0){
+        for(filterY = 0; filterY < MASK_Y; filterY++) {
+          for(filterX = 0; filterX < MASK_X; filterX++) {
+            int imageX = (x - MASK_X / 2 + filterX + width) % width;
+            int imageY = (y - MASK_Y / 2 + filterY + height) % height;
+            R = *(image_s + byte_per_pixel * (imageY * width + imageX) + 2);
+            G = *(image_s + byte_per_pixel * (imageY * width + imageX) + 1);
+            B = *(image_s + byte_per_pixel * (imageY * width + imageX) + 0);
+            data.uc[0] = R;
+            data.uc[1] = G;
+            data.uc[2] = B;
+            mask[0] = 0xff;
+            mask[1] = 0xff;
+            mask[2] = 0xff;
+            mask[3] = 0;
+            initiator.write_to_socket( SOBEL_FILTER_R_ADDR, mask , data.uc, 4 );
+          }
+        }
+      }
+      else {
+        for(filterY = 0; filterY < MASK_Y; filterY++) {
+          filterX = MASK_X - 1;
           int imageX = (x - MASK_X / 2 + filterX + width) % width;
           int imageY = (y - MASK_Y / 2 + filterY + height) % height;
           R = *(image_s + byte_per_pixel * (imageY * width + imageX) + 2);
@@ -55,6 +75,7 @@ void Testbench::inout(){
           initiator.write_to_socket( SOBEL_FILTER_R_ADDR, mask , data.uc, 4 );
         }
       }
+      
       initiator.read_from_socket( SOBEL_FILTER_RESULT_ADDR, mask, data.result, 4);
       *(image_t + byte_per_pixel * (width * y + x) + 2) = data.result[0];
       *(image_t + byte_per_pixel * (width * y + x) + 1) = data.result[1];
