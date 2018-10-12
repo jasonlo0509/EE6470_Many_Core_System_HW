@@ -20,13 +20,18 @@ TA may use "make check" in systemC folder to verify the correctness. SystemC fol
 
 ## Implementation Details
 - Software: 
-	- I use the source code & medium filter introduction website provided by TA & successfully change the sobel kernel into a medium filter
+	- The Code is used for generating golden data.
 
 
-- SystemC:
+- SystemC(hw3 tlm-based implementation):
 	- I change all the data transfer into TLM-based transfer, and use the initiator.cpp provided by TA. And after binding initiator \& target socket, I use regitered b_transport to send \& receive the data.
+	- The overall architecture is the same as hw3, which has one Testbench \& one Medium circuit.
 	- I change the process structure in the Testbench Module from one input & one output process to just one inout process. Because the original implementation won't make sure send & receive happens in a FIFO correct fashion. Therefore, the received picture is wrong. To ensure the correctness, I put send & receive in the same loop.
-	- Here I implement medium filter optimized version with less pixels actually sent to the do_medium process in Medium.cpp.
+	
+
+## Additional features of design and models
+
+- Here I implement medium filter optimized version with less pixels actually sent to the do_medium process in Medium.cpp.
 
 ## Experimental results
 ### Before the medium filter

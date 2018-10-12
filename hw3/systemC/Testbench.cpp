@@ -76,26 +76,15 @@ void Testbench::inout(){
         }
       }
       
-      initiator.read_from_socket( SOBEL_FILTER_RESULT_ADDR, mask, data.result, 4);
-      *(image_t + byte_per_pixel * (width * y + x) + 2) = data.result[0];
-      *(image_t + byte_per_pixel * (width * y + x) + 1) = data.result[1];
-      *(image_t + byte_per_pixel * (width * y + x) + 0) = data.result[2];
+      initiator.read_from_socket( SOBEL_FILTER_RESULT_ADDR, mask, data.uc, 4);
+      *(image_t + byte_per_pixel * (width * y + x) + 2) = data.uc[0];
+      *(image_t + byte_per_pixel * (width * y + x) + 1) = data.uc[1];
+      *(image_t + byte_per_pixel * (width * y + x) + 0) = data.uc[2];
     }
   }
   sc_stop();
 }
 
-/*
-void Testbench::output(){
-  for(int y = 0; y < height; y++) {
-    for(int x = 0; x < width; x++) {
-      *(image_t + byte_per_pixel * (width * y + x) + 2) = ir_result.read();
-      *(image_t + byte_per_pixel * (width * y + x) + 1) = ig_result.read();
-      *(image_t + byte_per_pixel * (width * y + x) + 0) = ib_result.read();
-    }
-  }
-  sc_stop();
-}*/
 
 void Testbench::read_bmp(){
   const char *fname_s = "lena_noise.bmp";

@@ -10,7 +10,6 @@
 #define SOBEL_FILTER_RESULT_ADDR (0x00000004)
 
 typedef union word{
-	unsigned char result[3];
 	unsigned char uc[4];
 } word;
 
