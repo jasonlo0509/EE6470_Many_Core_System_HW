@@ -109,7 +109,6 @@ void Medium::blocking_transport(tlm::tlm_generic_payload &payload, sc_core::sc_t
             <<" is not valid"<<std::endl;
           break;
       }
-      printf("bang\n");
       data_ptr[0] = buffer.result[0];
       data_ptr[1] = buffer.result[1];
       data_ptr[2] = buffer.result[2];

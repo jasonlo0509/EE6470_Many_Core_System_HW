@@ -36,7 +36,7 @@ public:
 private:
   int filterY;
   int filterX;
-    //color arrays (global variable)
+  //color arrays (global variable)
   unsigned char red[MASK_X * MASK_Y];
   unsigned char green[MASK_X * MASK_Y];
   unsigned char blue[MASK_X * MASK_Y];
