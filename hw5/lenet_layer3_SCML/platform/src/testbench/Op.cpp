@@ -3,10 +3,14 @@
 #include <cassert>
 #include <iostream>
 
+#include "testbench/testbench.h"
+#include "acc_platform/acc_platform.h"
 #include "Op.h"
 #include "OpUtil.h"
 #include "ShapeTy.h"
 #include "Config.h"
+
+extern Testbench testbench;
 
 void conv2d(TVMValue stack_value, int arg_num) {
   assert(arg_num == 3);
@@ -92,7 +96,6 @@ void pool2d(TVMValue stack_value, int arg_num) {
                           stack_array[0].byte_offset);
   const ShapeTy data_shape = ShapeTy(stack_array[0].shape,
                                      stack_array[0].ndim);
-
   // output feature
   auto* output_ptr = getPtr(stack_array[1].data,
                           stack_array[1].byte_offset);
@@ -117,24 +120,63 @@ void pool2d(TVMValue stack_value, int arg_num) {
     std::cout << "\t";
     std::cout << "stride: " << stride << "\n";
   }
+  // Run Pooling Engine on SystemC platform
+  // Set Pooling engine
+  PoolConfig pool_config;
+  ePoolFunction function(is_maximum);
+  pool_config.pool_function         = static_cast<uint>(function);
+  pool_config.data_cube_in_width    = data_shape.w;
+  pool_config.data_cube_in_height   = data_shape.h;
+  pool_config.data_cube_in_channel  = data_shape.c;
+  pool_config.filter_width          = 2;
+  pool_config.filter_stride         = stride;
+  pool_config.zero_padding          = 0;
+  pool_config.data_cube_out_width  = output_shape.w;
+  pool_config.data_cube_out_height  = output_shape.h;
+  pool_config.data_cube_out_channel = output_shape.c;
+  pool_config.data_in_address       = POOL_BUFFER_ADDRESS;
+  pool_config.data_out_address      = POOL_BUFFER_ADDRESS
+                                      + (pool_config.data_cube_in_channel
+                                         * pool_config.data_cube_in_height
+                                         * pool_config.data_cube_in_width
+                                        ) * sizeof(float);
+  
+  uint test_data_num(pool_config.data_cube_in_channel
+                     * pool_config.data_cube_in_height
+                     * pool_config.data_cube_in_width);
 
-  // Real compuatations
-  for(unsigned int c = 0; c < output_shape.c; ++c) {
-  for(unsigned int h = 0; h < output_shape.h; ++h) {
-  for(unsigned int w = 0; w < output_shape.w; ++w) {
-    const auto Oidx = output_shape.Idx(c,h,w);
-    // initialize with minimum value
-    auto max = -FLT_MAX;
-    for(unsigned int fh = 0; fh < stride; ++fh) {
-    for(unsigned int fw = 0; fw < stride; ++fw) {
-      const auto Ih = (h * stride) + fh;
-      const auto Iw = (w * stride) + fw;
-      const auto Iidx = data_shape.Idx(c, Ih, Iw);
-      max = std::fmax(max, data_ptr[Iidx]);
-    }}
-    output_ptr[Oidx] = max;
-  }}}
+  uint result_num(pool_config.data_cube_out_channel
+                  * pool_config.data_cube_out_height
+                  * pool_config.data_cube_out_width);
+  testbench.LoadTestData(GLOBAL_BUFFER_ADDRESS, data_ptr, test_data_num);
 
+  /* Configure DMA to load test data into buffer from RAM */
+  vector<DmaChConfig> dma_config(1);
+  dma_config[0].channel_enable  = 1;
+  dma_config[0].source_address  = GLOBAL_BUFFER_ADDRESS;
+  dma_config[0].dest_address    = pool_config.data_in_address;
+  dma_config[0].transfer_length = test_data_num * sizeof(float);
+  dma_config[0].transfer_type   = 3;
+  dma_config[0].line_length     = 0;
+  dma_config[0].line_stride     = 0;
+  testbench.ConfigPoolDMA(dma_config);
+
+  /* Configure pooling engine to process test data */
+  testbench.ConfigPoolEngine(pool_config);
+
+  /* Configure DMA to move results from buffer into RAM */
+  dma_config[0].channel_enable  = 1;
+  dma_config[0].source_address  = pool_config.data_out_address;
+  dma_config[0].dest_address    = GLOBAL_BUFFER_ADDRESS;
+  dma_config[0].transfer_length = result_num * sizeof(float);
+  dma_config[0].transfer_type   = 3;
+  dma_config[0].line_length     = 0;
+  dma_config[0].line_stride     = 0;
+  testbench.ConfigPoolDMA(dma_config);
+
+  /* Get result from RAM through debug transport (no timing effort) */
+  testbench.GetResult(GLOBAL_BUFFER_ADDRESS, output_ptr, result_num);
+  std::cout << "BANG!!" << "\n";
   if (print_data) {
     // In this example, only prints the first channel
     std::cout << "Input: " << "\n";
@@ -142,7 +184,6 @@ void pool2d(TVMValue stack_value, int arg_num) {
     std::cout << "Output: " << "\n";
     printTensor(output_shape, output_ptr, 0);
   }
-
 }
 
 // proforms AX+B, where A is the input

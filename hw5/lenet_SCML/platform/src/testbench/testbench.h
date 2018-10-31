@@ -37,8 +37,6 @@ public:
 
 	Testbench(const sc_module_name &name);
 	~Testbench() {}
-
-private:
 	/* Main thread */
 	void Test_Thread();
 
@@ -51,4 +49,7 @@ private:
 
 	/* Bus timing model */
 	uint AccessTime(float data_length_in_bytes);
+
+private:
+	
 };
