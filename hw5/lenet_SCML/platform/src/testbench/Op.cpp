@@ -3,15 +3,15 @@
 #include <cassert>
 #include <iostream>
 
-#include "testbench.h"
-
 #include "acc_platform/acc_platform.h"
 #include "Op.h"
 #include "OpUtil.h"
 #include "ShapeTy.h"
 #include "Config.h"
 
-extern Testbench testbench;
+#include "testbench.h"
+// instance the Testbench in order to call its member functions
+extern Testbench tb;
 
 void conv2d(TVMValue stack_value, int arg_num) {
   assert(arg_num == 3);
@@ -142,6 +142,27 @@ void pool2d(TVMValue stack_value, int arg_num) {
                                          * pool_config.data_cube_in_width
                                         ) * sizeof(float);
   
+  std::cout << "[Test information]\n"
+       << "        Pooling function: ";
+  switch(function) {
+    case is_maximum: cout << "maximum"; break;
+    case is_average: cout << "average"; break;
+    case is_minimum: cout << "minimum"; break;
+    default: assert(0 && "This pooling function hasn't been supported yet.");
+  }
+  std::cout << '\n'
+       << "               Data type: floating point 32\n"
+       << "    Input data dimension: " << pool_config.data_cube_in_channel
+                                       << " x " << pool_config.data_cube_in_height 
+                                       << " x " << pool_config.data_cube_in_width << '\n'
+       << "            Zero Padding: " << pool_config.zero_padding << '\n'       
+       << "     Pooling window size: " << pool_config.filter_width
+                                       << " x " << pool_config.filter_width << '\n'
+       << "   Pooling window stride: " << pool_config.filter_stride << '\n'
+       << "   Output data dimension: " << pool_config.data_cube_out_channel
+                                       << " x " << pool_config.data_cube_out_height
+                                       << " x " << pool_config.data_cube_out_width << '\n' << endl;
+
   uint test_data_num(pool_config.data_cube_in_channel
                      * pool_config.data_cube_in_height
                      * pool_config.data_cube_in_width);
@@ -149,7 +170,8 @@ void pool2d(TVMValue stack_value, int arg_num) {
   uint result_num(pool_config.data_cube_out_channel
                   * pool_config.data_cube_out_height
                   * pool_config.data_cube_out_width);
-  testbench.LoadTestData(GLOBAL_BUFFER_ADDRESS, data_ptr, test_data_num);
+
+  tb.LoadTestData(GLOBAL_BUFFER_ADDRESS, data_ptr, test_data_num);
 
   /* Configure DMA to load test data into buffer from RAM */
   vector<DmaChConfig> dma_config(1);
@@ -160,10 +182,10 @@ void pool2d(TVMValue stack_value, int arg_num) {
   dma_config[0].transfer_type   = 3;
   dma_config[0].line_length     = 0;
   dma_config[0].line_stride     = 0;
-  testbench.ConfigPoolDMA(dma_config);
+  tb.ConfigPoolDMA(dma_config);
 
   /* Configure pooling engine to process test data */
-  testbench.ConfigPoolEngine(pool_config);
+  tb.ConfigPoolEngine(pool_config);
 
   /* Configure DMA to move results from buffer into RAM */
   dma_config[0].channel_enable  = 1;
@@ -173,10 +195,11 @@ void pool2d(TVMValue stack_value, int arg_num) {
   dma_config[0].transfer_type   = 3;
   dma_config[0].line_length     = 0;
   dma_config[0].line_stride     = 0;
-  testbench.ConfigPoolDMA(dma_config);
+  tb.ConfigPoolDMA(dma_config);
 
   /* Get result from RAM through debug transport (no timing effort) */
-  testbench.GetResult(GLOBAL_BUFFER_ADDRESS, output_ptr, result_num);
+  tb.GetResult(GLOBAL_BUFFER_ADDRESS, output_ptr, result_num);
+  
   if (print_data) {
     // In this example, only prints the first channel
     std::cout << "Input: " << "\n";
