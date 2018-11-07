@@ -27,6 +27,6 @@ public:
 	~SobelFilter();
 private:
 	void do_filter();
-  	sc_dt::sc_uint<32> ram[4];
+  	sc_dt::sc_uint<32> ram[8*4*4];
 };
 #endif

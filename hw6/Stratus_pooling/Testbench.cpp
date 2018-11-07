@@ -32,14 +32,14 @@ void Testbench::feed_rgb() {
 	min_txn_time = SC_ZERO_TIME;
 	total_txn_time = SC_ZERO_TIME;
   // set the input feature map
-  int in_w = 2;
-  int in_h = 2;
-  int in_ch = 1;
+  int in_w = 4;
+  int in_h = 4;
+  int in_ch = 8;
   int data_num = in_w * in_h * in_ch;
 
   // input fmap value
   for(int i = 0; i < data_num; i++)
-    data[i] = i;
+    data[i] = i%100;
 
 #ifndef NATIVE_SYSTEMC
 	o_rgb.reset();
@@ -50,40 +50,48 @@ void Testbench::feed_rgb() {
 	wait(1);
 	total_start_time = sc_time_stamp();
   sc_dt::sc_uint<32> rgb;
-  for (y = 0; y != in_h; ++y) {
+  int offset;
+
+  for (int ch = 0; ch < in_ch; ++ch) {
     for (x = 0; x != in_w; ++x) {
-      rgb = data[y*in_h + x];
-      cout << "pass data: " << rgb << endl;
-#ifndef NATIVE_SYSTEMC
-					o_rgb.put(rgb);
-#else
-					o_rgb.write(rgb);
-#endif
+      for (y = 0; y != in_h; ++y) {
+        offset = ch * in_ch + y * in_h + x * in_w;
+        rgb = data[offset];
+        //cout << "pass data: " << rgb << endl;
+  #ifndef NATIVE_SYSTEMC
+  					o_rgb.put(rgb);
+  #else
+  					o_rgb.write(rgb);
+  #endif
+      }
     }
   }
 }
 
 void Testbench::fetch_result() {
-  unsigned int x, y; // for loop counter
+  unsigned int x, y, ch; // for loop counter
   int total;
-  int out_w = 1;
-  int out_h = 1;
-  int out_ch = 1;
+  int out_ch = 8;
+  int out_w = 2;
+  int out_h = 2;
 #ifndef NATIVE_SYSTEMC
 	i_result.reset();
 #endif
 	wait(5);
 	wait(1);
-
-  for (y = 0; y != out_w; ++y) {
-    for (x = 0; x != out_h; ++x) {
-#ifndef NATIVE_SYSTEMC
-			total = i_result.get();
-#else
-			total = i_result.read();
-#endif
-			cout << "return data: " << total << endl;
+  cout << "return data: " << endl;
+  for (ch = 0; ch < out_ch; ++ch){
+    for (y = 0; y != out_w; ++y) {
+      for (x = 0; x != out_h; ++x) {
+  #ifndef NATIVE_SYSTEMC
+  			total = i_result.get();
+  #else
+  			total = i_result.read();
+  #endif
+  			cout << total << " ";
+      }
     }
+    cout << endl;
   }
 	total_run_time = sc_time_stamp() - total_start_time;
   sc_stop();

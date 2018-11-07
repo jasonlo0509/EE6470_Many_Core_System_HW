@@ -45,7 +45,7 @@ private:
 	sc_time total_txn_time;
 	sc_time total_start_time;
 	sc_time total_run_time;
-  sc_dt::sc_uint<32> data[4];
+  sc_dt::sc_uint<32> data[8*4*4];
 
   void feed_rgb();
 	void fetch_result();
