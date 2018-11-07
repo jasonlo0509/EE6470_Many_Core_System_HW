@@ -32,9 +32,9 @@ void Testbench::feed_rgb() {
 	min_txn_time = SC_ZERO_TIME;
 	total_txn_time = SC_ZERO_TIME;
   // set the input feature map
-  int in_w = 12;
-  int in_h = 12;
-  int in_ch = 4;
+  int in_w = 4;
+  int in_h = 4;
+  int in_ch = 8;
   int data_num = in_w * in_h * in_ch;
 
   // input fmap value
@@ -71,9 +71,9 @@ void Testbench::feed_rgb() {
 void Testbench::fetch_result() {
   unsigned int x, y, ch; // for loop counter
   int total;
-  int out_ch = 4;
-  int out_w = 6;
-  int out_h = 6;
+  int out_ch = 8;
+  int out_w = 2;
+  int out_h = 2;
 #ifndef NATIVE_SYSTEMC
 	i_result.reset();
 #endif
