@@ -40,31 +40,28 @@ set_attr end_of_sim_command "make saySimPassed"
 # Testbench or System Level Modules
 #
 ### 2. Add your testbench source files here.
-#define_system_module ../src/acc_platform/acc_platform.cpp
-#define_system_module ../src/dma/dma.cpp
-#define_system_module ../src/memory/memory_model.cpp
-#define_system_module ../src/testbench/testbench.cpp
-
-
+define_system_module ../main.cpp
+define_system_module ../Testbench.cpp
+define_system_module ../System.cpp
 
 #
 # SC_MODULEs to be synthesized
 #
 ### 3. Add your design source files here (to be high-level synthesized).
-define_hls_module DoPooling ../src/pool_engine/pool_engine.cpp
+define_hls_module SobelFilter ../SobelFilter.cpp
 
 ### 4. Define your HLS configuration (arbitrary names, BASIC and DPA in this example). 
-define_hls_config DoPooling BASIC
-define_hls_config DoPooling 	 DPA       --dpopt_auto=op,expr
+define_hls_config SobelFilter BASIC
+define_hls_config SobelFilter DPA       --dpopt_auto=op,expr
 
-#set IMAGE_DIR           ".."
-#set IN_FILE_NAME        "${IMAGE_DIR}/lena_std_short.bmp"
-#set OUT_FILE_NAME				"out.bmp"
+set IMAGE_DIR           ".."
+set IN_FILE_NAME        "${IMAGE_DIR}/lena_std_short.bmp"
+set OUT_FILE_NAME				"out.bmp"
 
 ### 5. Define simulation configuration for each HLS configuration
 ### 5.1 The behavioral simulation (C++ only).
-#define_sim_config B 
+define_sim_config B
 ### 5.2 The Verilog simulation for HLS config "BASIC". 
-#define_sim_config V_BASIC "PoolEngine RTL_V BASIC" 
+define_sim_config V_BASIC "SobelFilter RTL_V BASIC"
 ### 5.3 The Verilog simulation for HLS config "DPA". 
-#define_sim_config V_DPA "PoolEngine RTL_V DPA" 
+define_sim_config V_DPA "SobelFilter RTL_V DPA"
