@@ -176,7 +176,6 @@ void pool2d(TVMValue stack_value, int arg_num) {
 
   /* Get result from RAM through debug transport (no timing effort) */
   testbench.GetResult(GLOBAL_BUFFER_ADDRESS, output_ptr, result_num);
-  std::cout << "BANG!!" << "\n";
   if (print_data) {
     // In this example, only prints the first channel
     std::cout << "Input: " << "\n";

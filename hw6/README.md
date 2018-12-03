@@ -15,32 +15,43 @@ $ cd build
 $ cmake ../
 $ make
 $ ./pooling
-// single layer version for debug
-In lenet_layer3_SCML/   
-In lenet_layer3_SCML_decompose/
+// code for getting timing of pooling engine
+In Stratus_pooling/   
+In Stratus_pooling_decompose/
 ```
 
 ## General description
-In this homework, we have to implement a LENET using SCML platform, and port the software pooling logic to hardware. The second part we need to decompose the data \& do sub-data sequentially. 
+In this homework, we have to get timing of pooing engine and fill back to the original SCML platform to extract much real results.
 
 
 ## Implementation Details
-### part I
-1. I replace the Test_Thread with BaremetalDNN\_model\_wraper
-2. In Op.cpp, I config the pooling engine \& DMA to do the data transfer.
-3. In addition, remember extern the Testbench class in Op.py and make it a global variable in main.cpp
+### Stratus_pooling
+1. I write a new testbench and feed different feature map into pooing2D function.
+2. Then I use stratus to synthsis the pooing engine and do the cosimulation.
 
-### part II
-1. The only different is I decompose the input data into 4 decomposed sub-data along channel-side.
+### Stratus_pooling_decompose
+1. The only different part is that I change the ram size on pooing engine to 1/4. And do the exeution for four times.
 
 ## Experimental results
-Cycle count:
-1. version I 1652 ns
-2. version II 1856 ns
 
-Bandwidth required for Bus:
-version I is 4x of version II during transfer.
+timing : (for feature map [4,12,12])
 
-We can see that by intuition decomposition input data by four will increase the execution time by four times, but because the data trasfer is not the bottleneck for cycle count, we can reduce the bandwidth while not sacrificing so much cycle time.
+1. version I 56740 ns
+2. version II 18913 ns
+
+timing : (for feature map [8,4,4])
+
+1. version I 11580 ns
+2. version II 5900 ns
+
+
+The SCML simulation time is:
+
+1. version I 1652ns -> 69972ns
+2. version II 1856ns -> 26669ns
+
+We can observe the real simulation time after filling back the real pooling engine timing. But because we didn't do any architecture adjustment, this homework is somehow strange.
+
 ## Discussions and conclusions
-The machine generated code is very hard to trace, if a more readable code will be very good!!!
+I think it is strange for this homework to do things like this.
+We probably have ot design architecture first, then we could start to do high level synthesis.
